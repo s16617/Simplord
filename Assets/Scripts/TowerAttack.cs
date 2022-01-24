@@ -9,22 +9,22 @@ public class TowerAttack : MonoBehaviour
 
     public void OnTriggerEnter2D(Collider2D col)
     {
-        if (col.gameObject.CompareTag("Tower"))
+        if (col.gameObject.CompareTag("Tower") && !enemy.isComingBack)
         {
             col.gameObject.GetComponent<Tower>().RemovePoints(enemy.dmgPoints);
             enemy.GoBack();
         }
 
-        if (enemy.type == EnemyType.STRONG && col.gameObject.CompareTag("Exit"))
+        if (col.gameObject.CompareTag("TowerSound"))
         {
-            Destroy(gameObject);
+            col.gameObject.GetComponent<TowerSounds>().MakeSound();
         }
 
-        if (col.gameObject.CompareTag("Trap"))
+        if (col.gameObject.CompareTag("Trap") && !enemy.isComingBack)
         {
             Destroy(col.gameObject);
+            enemy.makeTrapSound();
             enemy.GoBack();
-            //Destroy(gameObject);
         }
     }
 }

@@ -12,16 +12,17 @@ public class Hero : MonoBehaviour
     public bool isFacingRight = false;
 
     private GameObject body;
-    private GameObject stairsBody;
     public GameObject trapPlace;
 
     private Enemy inContact;
 
     private Rigidbody2D rb;
 
-    private bool onStairs = false;
-    private bool goingUp = false;
-    private bool goingDown = false;
+    public bool onStairs = false;
+    private bool canGoOnStairs = false;
+
+    private GameObject topStairs;
+    private GameObject bottomStairs;
 
     private bool hasItemToPlace = false;
     private bool nearEnemySpawn = false;
@@ -30,11 +31,13 @@ public class Hero : MonoBehaviour
 
     private Item itemToPlace;
 
+    [SerializeField]
+    public AudioSource attackSound;
+
     // Start is called before the first frame update
     void Start()
     {
         body = this.gameObject.transform.Find("body").gameObject;
-        stairsBody = this.gameObject.transform.Find("stairsBody").gameObject;
         inContact = null;
 
         rb = gameObject.GetComponent<Rigidbody2D>();
@@ -47,37 +50,46 @@ public class Hero : MonoBehaviour
 
         Vector3 movement = new Vector3(moveHorizontal, 0f, 0f);
 
-        animator.SetFloat("speed", Mathf.Abs(moveHorizontal * speed));
-
-        if (isFacingRight && moveHorizontal < 0)
-        {
-            isFacingRight = false;
-            body.transform.localRotation = Quaternion.Euler(0, 0, 0);
-        }
-
-        if (!isFacingRight && moveHorizontal > 0)
-        {
-            isFacingRight = true;
-            body.transform.localRotation = Quaternion.Euler(0, 180, 0);
-        }
-
-        if (Input.GetKeyDown(KeyCode.Q) && inContact!=null)
+        if (Input.GetKeyDown(KeyCode.Space) && inContact!=null)
         {
             MakeAction();
         }
 
-        if (Input.GetKeyDown(KeyCode.UpArrow) )
+        if ((Input.GetKey(KeyCode.UpArrow) || Input.GetKey(KeyCode.W)) && (onStairs || canGoOnStairs))
         {
-            stairsBody.SetActive(true);
+            onStairs = true;
+            transform.position = Vector3.MoveTowards(transform.position, topStairs.transform.position,Time.deltaTime * speed);
+            moveHorizontal = topStairs.transform.position.x - transform.position.x;
+        }
+        else if ((Input.GetKey(KeyCode.DownArrow) || Input.GetKey(KeyCode.S)) && (onStairs || canGoOnStairs))
+        {
+            onStairs = true;
+            transform.position = Vector3.MoveTowards(transform.position, bottomStairs.transform.position, Time.deltaTime * speed);
+            moveHorizontal = bottomStairs.transform.position.x - transform.position.x;
+        }
+        else if(!onStairs || (canGoOnStairs && onStairs))
+        {
+            transform.position += movement * Time.deltaTime * speed;
+            onStairs = false;
         }
 
         if (onStairs)
         {
-            rb.gravityScale = 0;
+            float moveVertical = Input.GetAxis("Vertical");
+            animator.SetFloat("speed", Mathf.Abs(moveVertical * speed));
         }
         else
         {
-            rb.gravityScale = 0;
+            animator.SetFloat("speed", Mathf.Abs(moveHorizontal * speed));
+        }
+
+        if ((isFacingRight && moveHorizontal <= 0) || (onStairs && Input.GetAxis("Vertical")==0))
+        {
+            TurnLeft();
+        }
+        else if (!isFacingRight && moveHorizontal > 0)
+        {
+            TurnRight();
         }
 
         if (hasItemToPlace && Input.GetKeyDown(KeyCode.LeftControl))
@@ -93,9 +105,6 @@ public class Hero : MonoBehaviour
             }
 
         }
-
-        transform.position += movement * Time.deltaTime * speed;
-
        
     }
 
@@ -106,11 +115,13 @@ public class Hero : MonoBehaviour
             inContact = col.gameObject.GetComponent<Enemy>();
         }
 
-        if (col.gameObject.CompareTag("Stairs"))
+        if (col.gameObject.CompareTag("BottomStairs") || col.gameObject.CompareTag("TopStairs"))
         {
-           
-        }
+            topStairs = col.gameObject.GetComponent<Stairs>().topLocation;
+            bottomStairs = col.gameObject.GetComponent<Stairs>().bottomLocation;
 
+            canGoOnStairs = true;
+        }
         if (col.gameObject.CompareTag("EnemySpawn"))
         {
             nearEnemySpawn = true;
@@ -126,9 +137,15 @@ public class Hero : MonoBehaviour
             inContact = null;
         }
 
-        if (col.gameObject.CompareTag("Stairs"))
-        {
 
+        if (col.gameObject.CompareTag("BottomStairs"))
+        {
+            canGoOnStairs = false;
+        }
+
+        if (col.gameObject.CompareTag("TopStairs"))
+        {
+            canGoOnStairs = false;
         }
 
         if (col.gameObject.CompareTag("EnemySpawn"))
@@ -141,6 +158,7 @@ public class Hero : MonoBehaviour
     public void MakeAction()
     {
         inContact.Action();
+        attackSound.Play();
         inContact = null;
     }
 
@@ -158,5 +176,25 @@ public class Hero : MonoBehaviour
     {
         itemToPlace = itemToAdd;
         hasItemToPlace = true;
+    }
+
+    private void TurnRight()
+    {
+        isFacingRight = true;
+        body.transform.localRotation = Quaternion.Euler(0, 180, 0);
+    }
+
+    private void TurnLeft()
+    {
+        isFacingRight = false;
+        body.transform.localRotation = Quaternion.Euler(0, 0, 0);
+    }
+
+    private void TurningOnStairs(float x_direction)
+    {
+        if(isFacingRight && x_direction < 0)
+            TurnLeft();
+        else if(!isFacingRight && x_direction >0)
+            TurnRight();
     }
 }

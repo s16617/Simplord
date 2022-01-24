@@ -10,7 +10,10 @@ public class GameState : MonoBehaviour
     public List<Tower> towers;
 
     [SerializeField]
-    public List<GameObject> towersView;
+    public GameObject[] towersView;
+
+    [SerializeField]
+    public TextMeshProUGUI[] towersTPText;
 
     [SerializeField]
     public List<int> customTowersTP;
@@ -29,15 +32,40 @@ public class GameState : MonoBehaviour
     [SerializeField]
     public GameObject infoPanel;
     public TextMeshProUGUI infoText;
+    public GameObject continueButton;
 
     [SerializeField]
     public GameObject gameMenu;
 
+    [SerializeField]
+    public GameObject gameMenuMiddle;
+
+    [SerializeField]
+    public GameObject gameMenuOptions;
+
+    [SerializeField]
+    public Shop shop;
+
+    [SerializeField]
+    public GameObject tutorialPanel;
+
     private bool levelEnded = false;
+
+    [SerializeField]
+    public int levelNr;
 
     // Start is called before the first frame update
     void Start()
     {
+        PlayerData data = SaveSystem.LoadData();
+        UIManager.unlockedLevel = data.unlockedLevel;
+        UIManager.muted = data.muted;
+
+        if (UIManager.muted)
+        {
+            UIManager.MuteAllSound();
+        }
+
         if (towers.Count == customTowersTP.Count)
         {
             for(int i=0; i < customTowersTP.Count; i++)
@@ -51,7 +79,6 @@ public class GameState : MonoBehaviour
             t.gameState = this;
         }
         waves.gameState = this;
-
     }
 
     // Update is called once per frame
@@ -63,6 +90,11 @@ public class GameState : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Escape))
         {
             StopGame();
+        }
+
+        if (Input.GetKeyUp(KeyCode.Return) && !tutorialPanel.activeSelf)
+        {
+            waves.Skip();
         }
 
         //warunek zostanie spełniony gdy wszystkie okresy się zakończą
@@ -78,8 +110,21 @@ public class GameState : MonoBehaviour
     {
         //wyświetla komunikat o pozytywnym przejściu poziomu
         //oraz wybór "wyjdź" albo "następny poziom"
-        infoText.text = "Sukces!";
+        PlayerData data = SaveSystem.LoadData();
+        int alreadyUnlockedLevel = data.unlockedLevel;
+
+        if(alreadyUnlockedLevel < levelNr + 1)
+        {
+            UIManager.unlockedLevel = (levelNr + 1);
+            SaveSystem.SaveOptions();
+        }
+
+        infoText.text = "Success!";
         infoPanel.SetActive(true);
+        if(levelNr < 4)
+            continueButton.SetActive(true);
+        shop.Hide();
+        waves.music.WinMusic();
     }
 
     public void NextLevel()
@@ -94,10 +139,11 @@ public class GameState : MonoBehaviour
     public void Fail()
     {
         waves.StopCounting();
-        infoText.text = "Porażka!";
+        infoText.text = "You failed!";
         infoPanel.SetActive(true);
-        print("failed");
-        //wyświetlić menu z "powtórz" albo "zakończ"
+        continueButton.SetActive(false);
+        shop.Hide();
+        waves.music.FailMusic();
 
     }
 
@@ -109,6 +155,7 @@ public class GameState : MonoBehaviour
 
     public void Quit()
     {
+        SaveSystem.SaveOptions();
         Application.Quit();
     }
 
@@ -116,12 +163,41 @@ public class GameState : MonoBehaviour
     {
         waves.StopCounting();
         gameMenu.SetActive(true);
+        shop.Hide();
+        ShowTowersPoints();
+
+        if (tutorialPanel != null)
+            tutorialPanel.SetActive(false);
     }
 
     public void ResumeGame()
     {
         waves.StartCounting();
         gameMenu.SetActive(false);
+        shop.Unhide();
+
+        if (tutorialPanel != null && !waves.IsActive() && shop.chosenItem != null)
+        {
+
+            tutorialPanel.SetActive(true);
+        }
+    }
+
+    public void HideOptions()
+    {
+        gameMenuOptions.SetActive(false);
+        SaveSystem.SaveOptions();
+        gameMenuMiddle.SetActive(true);
+    }
+
+    public void ShowTowersPoints()
+    {
+        int i = 0;
+        foreach (Tower t in towers)
+        {
+            towersTPText[i].text = "Tower nr" + (i+1) + ": " + t.currentTrustPoints + " / " + t.maxTrustPoints;
+            i++;
+        }
     }
 }
 

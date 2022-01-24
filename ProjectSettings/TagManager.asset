@@ -12,6 +12,9 @@ TagManager:
   - Exit
   - EnemySpawn
   - Trap
+  - BottomStairs
+  - TopStairs
+  - TowerSound
   layers:
   - Default
   - TransparentFX
@@ -26,9 +29,9 @@ TagManager:
   - 
   - 
   - Stairs
-  - 
+  - StairsGraphics
   - Tower
-  - 
+  - TowerSound
   - Hero
   - 
   - Enemy
@@ -46,6 +49,9 @@ TagManager:
   - 
   - 
   m_SortingLayers:
+  - name: sky
+    uniqueID: 3012502497
+    locked: 0
   - name: Background
     uniqueID: 766364911
     locked: 0
@@ -57,6 +63,9 @@ TagManager:
     locked: 0
   - name: Tower
     uniqueID: 3693181291
+    locked: 0
+  - name: hide
+    uniqueID: 3189361117
     locked: 0
   - name: Enemy
     uniqueID: 1285523055

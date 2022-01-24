@@ -10,6 +10,11 @@ public class Tower : MonoBehaviour
 
     public int currentTrustPoints;
 
+    public int maxTrustPoints;
+
+    [SerializeField]
+    public int floor;
+
     [SerializeField]
     public GameObject TPText;
 
@@ -18,6 +23,7 @@ public class Tower : MonoBehaviour
     private void Awake()
     {
         currentTrustPoints = trustPoints;
+        maxTrustPoints = trustPoints;
     }
 
     // Start is called before the first frame update
@@ -28,7 +34,7 @@ public class Tower : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        TPText.GetComponent<TMPro.TextMeshProUGUI>().text = "" + currentTrustPoints + "/" + trustPoints;
+        TPText.GetComponent<TMPro.TextMeshProUGUI>().text = "" + currentTrustPoints + "/" + maxTrustPoints;
     }
 
     public void RemovePoints(int points)

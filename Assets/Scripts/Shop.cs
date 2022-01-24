@@ -7,8 +7,8 @@ using UnityEngine.UI;
 public class Shop : MonoBehaviour
 {
 
-    [SerializeField]
-    public List<Item> items;
+    //[SerializeField]
+    //public List<Item> items;
 
     public List<GameObject> itemsUI;
 
@@ -17,6 +17,8 @@ public class Shop : MonoBehaviour
 
     public GameObject shopPanel;
     public GameObject shopButton;
+    public TextMeshProUGUI shopMessage;
+    public GameObject textPanel;
     public Image chosenItemImage;
 
     public Button acceptButton;
@@ -25,12 +27,15 @@ public class Shop : MonoBehaviour
 
     public GameObject trapToPlace;
 
+    public bool shopOpen = true;
+    public bool shopBlocked = false;
+
     [SerializeField]
     public Hero mainHero;
 
     void Start()
     {
-        
+        ChooseItem(null);
     }
 
     void Update()
@@ -46,7 +51,7 @@ public class Shop : MonoBehaviour
             if (parentItem == itemUI)
             {
                 Image img = itemUI.GetComponent<Image>();
-                img.color = UnityEngine.Color.red;
+                img.color = new Color32(39, 62, 163, 100);
                 currentItem = itemUI.GetComponent<Item>();
             }
             else {
@@ -64,6 +69,31 @@ public class Shop : MonoBehaviour
     {
         shopButton.SetActive(false);
         shopPanel.SetActive(true);
+        shopOpen = true;
+    }
+
+    public void BlockShop()
+    {
+        if (chosenItem == null)
+        {
+            shopButton.SetActive(false);
+            shopPanel.SetActive(false);
+            textPanel.SetActive(true);
+            shopMessage.text = "Shop available only during planning phase.";
+            shopOpen = false;
+            shopBlocked = true;
+        }
+    }
+
+    public void UnblockShop()
+    {
+        if(chosenItem == null)
+        {
+            textPanel.SetActive(false);
+            shopMessage.text = "";
+            shopBlocked = false;
+            Unhide();
+        }
     }
 
     public void Postpone()
@@ -71,6 +101,7 @@ public class Shop : MonoBehaviour
         shopPanel.SetActive(false);
         ChooseItem(null);
         shopButton.SetActive(true);
+        shopOpen = false;
     }
 
     public void Accept()
@@ -90,6 +121,35 @@ public class Shop : MonoBehaviour
         chosenItem.Accept(mainHero);
         chosenItem.trapToPlace = trapToPlace;
         shopPanel.SetActive(false);
+
+    }
+
+    public void Hide()
+    {
+        shopPanel.SetActive(false);
+        shopButton.SetActive(false);
+        chosenItemImage.gameObject.SetActive(false);
+        textPanel.SetActive(false);
+        shopMessage.gameObject.SetActive(false);
+
+    }
+
+    public void Unhide()
+    {
+
+        if (chosenItem != null)
+            chosenItemImage.gameObject.SetActive(true);
+        else if (shopOpen)
+        {
+            shopPanel.SetActive(true);
+        }
+        else if (!shopBlocked)
+            shopButton.SetActive(true);
+        else
+        {
+            textPanel.SetActive(true);
+            shopMessage.gameObject.SetActive(true);
+        }
 
     }
 

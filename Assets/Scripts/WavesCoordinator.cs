@@ -12,6 +12,11 @@ public class WavesCoordinator : MonoBehaviour
 
     private bool active = true;
 
+    private int firstAttackingPhase;
+
+    [SerializeField]
+    public MusicCoordinator music;
+
     [SerializeField]
     public int nrOfWaves;
 
@@ -27,12 +32,17 @@ public class WavesCoordinator : MonoBehaviour
     public GameObject skip;
 
     [SerializeField]
+    public Shop shop;
+
+    [SerializeField]
     public bool activeSpawn = true;
 
     // Start is called before the first frame update
     void Start()
     {
+        StartCounting();
         timerBar = GetComponent<Image>();
+        firstAttackingPhase = nrOfWaves - 1;
         NextWave();
     }
 
@@ -77,20 +87,40 @@ public class WavesCoordinator : MonoBehaviour
         if (nrOfWaves % 2 == 0)
         {
             skip.SetActive(true);
+            shop.UnblockShop();
             timerBar.color = new Color32(38, 115, 38, 200);
+            if (nrOfWaves < firstAttackingPhase)
+            {
+                music.PlanningPhaseMusic();
+            }
         }
         else
         {
             skip.SetActive(false);
+            shop.BlockShop();
             timerBar.color = new Color32(128, 0, 0, 150);
+            music.FightingPhaseMusic();
         }
-
         nrOfWaves--;
     }
 
     public void Skip()
     {
-        timeLeft = 0;
+        if (skip.activeSelf)
+            timeLeft = 0;
+    }
+    public bool IsActive()
+    {
+        return active;
+    }
+    public void StopPhase()
+    {
+        active = false;
+    }
+
+    public void StartPhase()
+    {
+        active = true;
     }
 
     public void StopCounting()

@@ -26,6 +26,9 @@ public class Item : MonoBehaviour
     public string description = "";
     string imageName = "";
 
+    [SerializeField]
+    public AudioSource potionSound;
+
     void Start()
     {
 
@@ -45,23 +48,19 @@ public class Item : MonoBehaviour
         switch (type)
         {
             case ItemType.POTION_SPEED:
-                description = "Ten napój pozwoli Ci poruszać się szybciej.";
+                description = "Speed up your movement.";
                 imageName = "PotionSpeed";
                 break;
             case ItemType.POTION_ENEMY_SLOW:
-                description = "Napój TimeChanger. Wyostrza zmysły. Spowalnia przeciwników.";
+                description = "Sharps your senses. Slows enemies.";
                 imageName = "PotionTime";
                 break;
-            case ItemType.POTION_STRENGTH:
-                description = "Super siła potrzebna do przesuwania przeciwników? Wypij to!";
-                imageName = "PotionStrength";
-                break;
             case ItemType.BLOCKADE:
-                description = "Zabij drzwi i okna! Nie pozwól im wejść...";
+                description = "Blocks doors.";
                 imageName = "Blockade";
                 break;
             case ItemType.TRAP:
-                description = "Klasyczna pułapka. Zawsze skuteczna.";
+                description = "Basic banana trap.";
                 imageName = "Trap";
                 break;
 
@@ -80,6 +79,8 @@ public class Item : MonoBehaviour
         if (type == ItemType.BLOCKADE || type == ItemType.TRAP)
         {
             quantityText.text = "" + quantity;
+            if(quantity == 0)
+                quantityText.color = Color.red;
         }
         else
         {
@@ -93,12 +94,11 @@ public class Item : MonoBehaviour
         {
             case ItemType.POTION_SPEED:
                 hero.ChangeSpeed(1.5f);
+                potionSound.Play();
                 break;
-            case ItemType.POTION_ENEMY_SLOW:
-                Enemy.ChangeSpeed(0.7f);
-                 break;
-            case ItemType.POTION_STRENGTH:
-                hero.ChangeForce(1.5f);
+            case ItemType.POTION_ENEMY_SLOW: 
+                Enemy.ChangeSpeed(0.6f);
+                potionSound.Play();
                 break;
             case ItemType.BLOCKADE:
                 hero.AddItem(this);
@@ -117,7 +117,7 @@ public class Item : MonoBehaviour
             switch (type)
             {
                 case ItemType.BLOCKADE:
-                    if (!spawnPoint.blocked)
+                    if (!spawnPoint.blocked && !spawnPoint.active)
                     {
                         spawnPoint.Block();
 
@@ -145,7 +145,6 @@ public enum ItemType
 {
     POTION_SPEED,
     POTION_ENEMY_SLOW,
-    POTION_STRENGTH,
     BLOCKADE,
     TRAP
 }
